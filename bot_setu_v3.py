@@ -117,7 +117,7 @@ class PixivToken:
                 'device_token': self.device_token,
                 'get_secure_url': 'true',
                 'include_policy': 'true'}
-        res = requests.post(url=self.api, data=data, headers=self.headers()).json()
+        res = requests.post(url=self.api, data=data, headers=self.headers(),verify=False).json()
         res['time'] = time.time()  # 记录时间
         return res
 
