@@ -1,9 +1,9 @@
 {
-  "botQQ": 123456789,
-  "lolicon_API_Key": "",
-  "pixiv_username":"",
-  "pixiv_password":"",
+  "botQQ": 2498592778,
+  "lolicon_API_Key": "730655035f351de0a19db6",
+  "pixiv_username":"942648152@qq.com",
+  "pixiv_password":"a3163504123",
   "proxy": true,
-  "superAdmin": 13456789,
+  "superAdmin": 942648152,
   "path": ""
 }

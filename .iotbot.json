@@ -1,6 +1,6 @@
 {
-  "host": "127.0.0.1",
-  "port": 8888,
+  "host": "47.95.207.53",
+  "port": 5700,
   "webhook": false,
   "webhook_post_url": "http://localhost:5000",
   "webhook_timeout": 10
