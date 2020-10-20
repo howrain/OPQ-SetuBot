@@ -864,6 +864,7 @@ class Command:
     def cmd_group(self):
         # 不处理自身消息
         if str(self.ctx.FromUserId) == str(config['botQQ']):
+            logger.info("FromUserId:{FromUserId},botQQ:{botQQ}".format(FromUserId=self.ctx.FromUserId,botQQ=config['botQQ']))
             return
         if '_help' == self.ctx.Content.strip():
             sendMsg.send_text(self.ctx, help_msg)
