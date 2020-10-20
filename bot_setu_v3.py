@@ -443,8 +443,6 @@ class Setu:
 
     def processing_and_inspect(self):  # 处理消息+调用
         # 不处理自身消息
-        logger.info(
-            "FromUserId:{FromUserId},botQQ:{botQQ}".format(FromUserId=self.ctx.FromUserId, botQQ=config['botQQ']))
         if str(self.ctx.FromUserId) == str(config['botQQ']):
             return
         # -----------------------------------------------
