@@ -442,6 +442,11 @@ class Setu:
         return wrapper
 
     def processing_and_inspect(self):  # 处理消息+调用
+        # 不处理自身消息
+        logger.info(
+            "FromUserId:{FromUserId},botQQ:{botQQ}".format(FromUserId=self.ctx.FromUserId, botQQ=config['botQQ']))
+        if str(self.ctx.FromUserId) == str(config['botQQ']):
+            return
         # -----------------------------------------------
         if self.num != '':  # 如果指定了数量
             try:
@@ -862,10 +867,7 @@ class Command:
         return self.change_dict(x, lista, change, ret)
 
     def cmd_group(self):
-        # 不处理自身消息
-        logger.info("FromUserId:{FromUserId},botQQ:{botQQ}".format(FromUserId=self.ctx.FromUserId,botQQ=config['botQQ']))
-        if str(self.ctx.FromUserId) == str(config['botQQ']):
-            return
+
         if '_help' == self.ctx.Content.strip():
             sendMsg.send_text(self.ctx, help_msg)
             return
