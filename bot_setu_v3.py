@@ -172,14 +172,14 @@ class Setu:
         elif self.db_config['setuinfoLevel'] == 1:
             msg = '作品id:{}\r\n作者id:{}\r\nP:{}'.format(artworkid, artistid, page)
         elif self.db_config['setuinfoLevel'] == 2:
-            msg = '作品:{}\r\n作者:{}\r\nP:{}\r\n原图:{}'.format(
+            msg = '作品:{}\r\n作者:{}\r\nP:{}\r\n原图:{}\r\nPS:利用此功能发送NSFW图片等同于调用者发送'.format(
                 'www.pixiv.net/artworks/' + str(artworkid),
                 'www.pixiv.net/users/' + str(artistid),
                 page,
                 url_original
             )
         elif self.db_config['setuinfoLevel'] == 3:
-            msg = '标题:{title}\r\n{purl}\r\npage:{page}\r\n作者:{author}\r\n{uurl}\r\n原图:{url_original}'.format(
+            msg = '标题:{title}\r\n{purl}\r\npage:{page}\r\n作者:{author}\r\n{uurl}\r\n原图:{url_original}\r\nPS:利用此功能发送NSFW图片等同于调用者发送'.format(
                 title=title,
                 purl='www.pixiv.net/artworks/' + str(artworkid),
                 page=page,
@@ -241,7 +241,7 @@ class Setu:
             if res.status_code == 200:
                 for data in setu_data['data']:
                     filename = data['filename']
-                    if self.if_sent('https://cdn.jsdelivr.net/gh/laosepi/setu/pics_original/' + filename):  # 判断是否发送过
+                    if self.if_sent('https://cdn.jsdelivr.net/gh/laosepi/setu/pics_original/' + filename):  # 判断是否发送过 避免发送重复
                         continue
                     url_original = 'https://cdn.jsdelivr.net/gh/laosepi/setu/pics_original/' + filename
                     msg = self.build_msg(data['title'], data['artwork'], data['author'], data['artist'],
@@ -292,7 +292,7 @@ class Setu:
         else:
             if res.status_code == 200:
                 for data in setu_data['data']:
-                    if self.if_sent(data['url']):  # 判断是否发送过
+                    if self.if_sent(data['url']):  # 判断是否发送过 避免发送重复
                         continue
                     msg = self.build_msg(data['title'], data['pid'], data['author'], data['uid'], data['p'], '无~')
                     sendMsg.send_pic(self.ctx, msg, data['url'], False, self.db_config['at'])
