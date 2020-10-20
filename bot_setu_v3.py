@@ -865,10 +865,10 @@ class Command:
         # 不处理自身消息
         if self.ctx.FromUserId == config['botQQ']:
             return
-        if '_help' == self.ctx.Content:
+        if '_help' == self.ctx.Content.strip():
             sendMsg.send_text(self.ctx, help_msg)
             return
-        if '_grouphelp' == self.ctx.Content:
+        if '_grouphelp' == self.ctx.Content.strip():
             sendMsg.send_text(self.ctx, group_help_msg)
             return
         if self.db['callqq'] in self.db['managers'] or self.db['callqq'] in self.db['admins'] or self.db['callqq'] == \
