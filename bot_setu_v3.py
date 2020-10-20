@@ -862,6 +862,9 @@ class Command:
         return self.change_dict(x, lista, change, ret)
 
     def cmd_group(self):
+        # 不处理自身消息
+        if self.ctx.FromUserId == config['botQQ']:
+            return
         if '_help' == self.ctx.Content:
             sendMsg.send_text(self.ctx, help_msg)
             return
