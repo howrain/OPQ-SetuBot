@@ -445,7 +445,7 @@ class Setu:
 
     def processing_and_inspect(self):  # 处理消息+调用
         # 不处理自身消息
-        if str(self.ctx.FromUserId) == str(config['botQQ']):
+        if isinstance(self.ctx,GroupMsg) and str(self.ctx.FromUserId) == str(config['botQQ']):
             return
         # -----------------------------------------------
         if self.num != '':  # 如果指定了数量
