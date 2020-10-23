@@ -1,0 +1,16 @@
+version: "3"
+services:
+  setubot1:
+    image: howrain/setubot
+    restart: always
+    container_name: setubot
+    volumes:
+      - ./OPQ-SetuBot/config.json:/colorpic/config.json
+      - ./OPQ-SetuBot/.iotbot.json:/colorpic/.iotbot.json
+      - ./OPQ-SetuBot/db:/colorpic/db
+      - ./OPQ-SetuBot/bot_setu_v3.py:/colorpic/bot_setu_v3.py
+
+    stdin_open: true
+    tty: true
+    command: python bot_setu_v3.py
+    extra_hosts:
