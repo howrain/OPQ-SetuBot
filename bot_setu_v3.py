@@ -867,6 +867,9 @@ class Command:
         return self.change_dict(x, lista, change, ret)
 
     def cmd_group(self):
+        if not bool(re.search('^_', self.ctx.Content)):
+            return
+
 
         if '_help' == self.ctx.Content.strip():
             sendMsg.send_text(self.ctx, help_msg)
