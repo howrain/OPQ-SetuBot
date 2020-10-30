@@ -37,7 +37,7 @@ except:
     logger.info('db目录已存在')
 bot = IOTBOT(config['botQQ'], log=False)
 action = Action(bot, queue=False)
-pattern_setu = '来(.*?)[点丶份张幅](.*?)的?(|r18)[色瑟涩🐍][图圖🤮]'
+pattern_setu = '来(.*?)[点丶份张幅](.*?)的?(|r18)[色瑟涩😍🐍][图圖🤮]'
 # ------------------db-------------------------
 group_config = TinyDB('./db/group_config.json')
 friend_config = TinyDB('./db/friend_config.json')
@@ -165,10 +165,16 @@ class PixivToken:
                 'device_token': self.device_token,
                 'get_secure_url': 'true',
                 'include_policy': 'true'}
-        res = requests.post(url=self.api, data=data, headers=self.headers(),verify=False).json()
+        try:
+            res = requests.post(url=self.api, data=data, headers=self.headers()).json()
+        except:
+            logger.error('获取token出错~')
+            bot.close()
+            return
         res['time'] = time.time()  # 记录时间
         return res
 
+    @retry(stop_max_attempt_number=3, wait_random_max=2000)
     def refresh_token(self, token):
         logger.info('刷新Pixiv_token~')
         data = {'client_id': 'MOBrBDS8blbauoSck0ZfDbtuzpyT',
@@ -186,11 +192,15 @@ class PixivToken:
         global pixivid
         while True:
             if time.time() - pixivid['time'] >= int(pixivid['expires_in']):  # 刷新
-                pixivid = self.refresh_token(pixivid['refresh_token'])
-                logger.success('刷新token成功~')
-                self.saveToken(pixivid)
+                try:
+                    pixivid = self.refresh_token(pixivid['refresh_token'])
+                    logger.success('刷新token成功~')
+                    self.saveToken(pixivid)
+                except:
+                    logger.warning('刷新Pixiv_token出错')
+                    time.sleep(10)
             else:
-                time.sleep(int(pixivid['expires_in'])-(time.time() - pixivid['time']))
+                time.sleep(int(pixivid['expires_in']) - (time.time() - pixivid['time']))
 
     def saveToken(self, data):
         with open('.Pixiv_Token.json', 'w', encoding='utf-8') as f:
@@ -289,7 +299,7 @@ class Setu:
             if res.status_code == 200:
                 for data in setu_data['data']:
                     filename = data['filename']
-                    if self.if_sent('https://cdn.jsdelivr.net/gh/laosepi/setu/pics_original/' + filename):  # 判断是否发送过 避免发送重复
+                    if self.if_sent('https://cdn.jsdelivr.net/gh/laosepi/setu/pics_original/' + filename):  # 判断是否发送过
                         continue
                     url_original = 'https://cdn.jsdelivr.net/gh/laosepi/setu/pics_original/' + filename
                     msg = self.build_msg(data['title'], data['artwork'], data['author'], data['artist'],
@@ -311,6 +321,8 @@ class Setu:
 
     def api_1(self):
         self.api1_toget_num = self.num - self.api_0_realnum
+        if self.api1_toget_num > 10:
+            self.api1_toget_num = 10
         # 兼容api0
         if self.api1_toget_num <= 0:
             return
@@ -340,7 +352,7 @@ class Setu:
         else:
             if res.status_code == 200:
                 for data in setu_data['data']:
-                    if self.if_sent(data['url']):  # 判断是否发送过 避免发送重复
+                    if self.if_sent(data['url']):  # 判断是否发送过
                         continue
                     msg = self.build_msg(data['title'], data['pid'], data['author'], data['uid'], data['p'], '无~')
                     sendMsg.send_pic(self.ctx, msg, data['url'], False, self.db_config['at'])
@@ -540,9 +552,10 @@ class Setu:
     @_freq  # 频率
     def send(self):  # 判断数量
         self.api_0()
-        if len(self.tag) == 1:
+        if len(self.tag) in [0, 1]:
             self.api_1()
-        self.api_pixiv()
+        if config['pixiv_api'] and len(self.tag) != 0:
+            self.api_pixiv()
         if self.api_0_realnum == 0 and self.api_1_realnum == 0 and self.api_pixiv_realnum == 0:
             sendMsg.send_text(self.ctx, self.db_config['msg_notFind'], self.db_config['at_warning'])
             return
@@ -866,7 +879,7 @@ class Command:
         lista.pop(0)
         return self.change_dict(x, lista, change, ret)
 
-    def cmd_group(self):
+    def cmd_group(self, lv):  # 2<1<0   0:root
         if not bool(re.search('^_', self.ctx.Content)):
             return
 
@@ -877,8 +890,46 @@ class Command:
         if '_grouphelp' == self.ctx.Content.strip():
             sendMsg.send_text(self.ctx, group_help_msg)
             return
-        if self.db['callqq'] in self.db['managers'] or self.db['callqq'] in self.db['admins'] or self.db['callqq'] == \
-                config['superAdmin']:  # 鉴权
+        if lv == 0:  # todo:封装成函数
+            if cmd := re.match('_cmd (.*) (.*):(.*)', self.ctx.Content):  # 万能修改
+                keys = cmd[1].split()
+                data_type = cmd[2]
+                if data_type == 'int':
+                    data = int(cmd[3])
+                elif data_type == 'bool':
+                    data = bool(int(cmd[3]))
+                elif data_type == 'str':
+                    data = str(cmd[3])
+                else:
+                    sendMsg.send_text(self.ctx, 'error')
+                    return
+                try:
+                    ret = self.change_dict(self.db_raw, keys, data)
+                except:
+                    sendMsg.send_text(self.ctx, 'ERROR')
+                    return
+        if lv <= 1:
+            if self.ctx.MsgType == 'AtMsg':
+                At_Content_front = re.sub(r'@.*', '', json.loads(self.ctx.Content)['Content'])  # @消息前面的内容
+                atqqs: list = json.loads(self.ctx.Content)['UserID']
+                if At_Content_front == '_增加管理员':
+                    for qq in atqqs:
+                        if qq in self.db['admins']:
+                            sendMsg.send_text(self.ctx, '{}已经是管理员了'.format(qq))
+                            sendMsg.send_text(self.ctx, '增加管理员失败')
+                            return
+                        self.db['managers'].append(qq)
+                    ret = '增加管理员成功'
+
+                elif At_Content_front == '_删除管理员':
+                    for qq in atqqs:
+                        try:
+                            self.db['managers'].remove(qq)
+                        except:
+                            sendMsg.send_text(self.ctx, '删除管理员出错')
+                            return
+                    ret = '删除管理员成功'
+        if lv <= 2:
             if self.ctx.Content == '_开启群聊r18':
                 ret = self.change_dict(self.db_raw, ['r18', 'group'], True)
             elif self.ctx.Content == '_关闭群聊r18':
@@ -961,65 +1012,13 @@ class Command:
                 ret = self.change_dict(self.db_raw, ['msg_r18Closed'], str(info[1]))
             elif info := re.match('_修改达到频率限制的回复 (.*)', self.ctx.Content):
                 ret = self.change_dict(self.db_raw, ['msg_frequency'], str(info[1]))
-
-            else:
-                if self.db['callqq'] in self.db['admins'] or self.db['callqq'] == config['superAdmin']:
-                    if self.ctx.MsgType == 'AtMsg':
-                        At_Content_front = re.sub(r'@.*', '', json.loads(self.ctx.Content)['Content'])  # @消息前面的内容
-                        atqqs: list = json.loads(self.ctx.Content)['UserID']
-                        if At_Content_front == '_增加管理员':
-                            for qq in atqqs:
-                                if qq in self.db['admins']:
-                                    sendMsg.send_text(self.ctx, '{}已经是管理员了'.format(qq))
-                                    sendMsg.send_text(self.ctx, '增加管理员失败')
-                                    return
-                                self.db['managers'].append(qq)
-                            ret = '增加管理员成功'
-
-                        elif At_Content_front == '_删除管理员':
-                            for qq in atqqs:
-                                try:
-                                    self.db['managers'].remove(qq)
-                                except:
-                                    sendMsg.send_text(self.ctx, '删除管理员出错')
-                                    return
-                            ret = '删除管理员成功'
-                    else:
-                        if self.db['callqq'] == config['superAdmin']:
-                            if cmd := re.match('_cmd (.*) (.*):(.*)', self.ctx.Content):  # 万能修改
-                                keys = cmd[1].split()
-                                data_type = cmd[2]
-                                if data_type == 'int':
-                                    data = int(cmd[3])
-                                elif data_type == 'bool':
-                                    data = bool(int(cmd[3]))
-                                elif data_type == 'str':
-                                    data = str(cmd[3])
-                                else:
-                                    sendMsg.send_text(self.ctx, 'error')
-                                    return
-                                try:
-                                    ret = self.change_dict(self.db_raw, keys, data)
-                                except:
-                                    sendMsg.send_text(self.ctx, 'ERROR')
-                                    return
-                            else:
-                                sendMsg.send_text(self.ctx, '无此命令')
-                                return
-                        else:
-                            sendMsg.send_text(self.ctx, '无此命令')
-                            return
-                else:
-                    sendMsg.send_text(self.ctx, '无此命令')
-                    return
-            # else:
-            #     sendMsg.send_text(self.ctx, '爪巴')
-            #     return
-            # ------------------更新数据--------------------
+        if 'ret' in locals().keys():  # 如果有ret
             sendMsg.send_text(self.ctx, ret)
             group_config.update(self.db_raw, Q['GroupId'] == self.db['GroupId'])
+        else:
+            sendMsg.send_text(self.ctx, '未匹配到命令')
 
-    def group_or_temp(self):
+    def group_or_temp(self):  # todo: 命令分层
         if self.ctx.__class__.__name__ == 'GroupMsg':  # 群聊
             groupid = self.ctx.FromGroupId
             self.db['type'] = 'group'
@@ -1029,20 +1028,29 @@ class Command:
             self.db['callqq'] = self.ctx.FromUin
             self.db['type'] = 'temp'
         if data := group_config.search(Q['GroupId'] == groupid):  # 查询group数据库数据
-            if self.db['callqq'] in data[0]['managers'] or self.db['callqq'] in data[0]['admins'] or self.db[
-                'callqq'] == config['superAdmin']:  # 鉴权
-                self.db_raw = data[0]
-                self.db.update(data[0])
-                self.cmd_group()  # 检测命令
+            self.db_raw = data[0]
+            self.db.update(data[0])  # 载入数据
+            # -------------------权限等级分层-----------------------------------
+            if self.db['callqq'] == config['superAdmin']:  # 鉴权(等级高的写前面)
+                lv = 0
+            elif self.db['callqq'] in data[0]['admins']:
+                lv = 1
+            elif self.db['callqq'] in data[0]['managers']:
+                lv = 2
             else:
                 sendMsg.send_text(self.ctx, '你没有权限,爪巴', True)
                 return
+            self.cmd_group(lv)
+            logger.info('callqq:{}  等级{})'.format(self.db['callqq'], lv))
         else:
             sendMsg.send_text(self.ctx, '数据库无群:{}信息,请联系管理员~'.format(groupid))
             logger.error('数据库无群:{}信息'.format(groupid))
             return
 
     def friend(self):
+        pass
+
+    def cmd_friend(self, lv):  # todo:superadmin万能修改
         pass
 
     def main(self):
@@ -1145,6 +1153,7 @@ def tag_group(ctx: FriendMsg):
 
 @bot.on_event
 def event(ctx: EventMsg):
+    # print(ctx.message)
     if admin_info := refine_group_admin_event_msg(ctx):
         if data_raw := group_config.search(Q['GroupId'] == admin_info.GroupID):
             if admin_info.Flag == 1:  # 变成管理员
@@ -1213,22 +1222,25 @@ if __name__ == '__main__':
         botdata.updateAllGroupData()
         pathlib.Path('.bot_setu_v3_flag').touch()  # 创建flag文件
     # ---------------------------------------------------------------------------------
-    pixiv = PixivToken(config['pixiv_username'], config['pixiv_password'])
-    if os.path.isfile('.Pixiv_Token.json'):  # 有文件
-        try:
-            with open('.Pixiv_Token.json', 'r', encoding='utf-8') as f:
-                pixivid = json.loads(f.read())
-                logger.success('Pixiv_Token载入成功~')
-        except:
-            logger.error('Pixiv_Token载入失败,请删除.Pixiv_Token.json重新启动~')
-            sys.exit()
+    if config['pixiv_api']:
+        pixiv = PixivToken(config['pixiv_username'], config['pixiv_password'])
+        if os.path.isfile('.Pixiv_Token.json'):  # 有文件
+            try:
+                with open('.Pixiv_Token.json', 'r', encoding='utf-8') as f:
+                    pixivid = json.loads(f.read())
+                    logger.success('Pixiv_Token载入成功~')
+            except:
+                logger.error('Pixiv_Token载入失败,请删除.Pixiv_Token.json重新启动~')
+                sys.exit()
+        else:
+            logger.info('无Pixiv_Token文件')
+            pixivid = pixiv.get_token()
+            if pixivid.get('has_error'):
+                logger.error('获取失败~\n' + pixivid['errors']['system']['message'])
+                sys.exit()
+            pixiv.saveToken(pixivid)
+        threading.Thread(target=pixiv.if_refresh_token, daemon=True).start()
     else:
-        logger.info('无Pixiv_Token文件')
-        pixivid = pixiv.get_token()
-        if pixivid.get('has_error'):
-            logger.error('获取失败~\n' + pixivid['errors']['system']['message'])
-            sys.exit()
-        pixiv.saveToken(pixivid)
-    threading.Thread(target=pixiv.if_refresh_token, daemon=True).start()
+        logger.info('未开启pixiv_api')
     # ---------------------------------------------------------------------------------
     bot.run()
