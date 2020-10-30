@@ -1073,7 +1073,7 @@ def friend_setu(ctx: FriendMsg):
 
 @bot.on_group_msg
 @deco.not_botself
-@deco.in_content('\_.*')
+@deco.in_content('^\_.*')
 @deco.only_this_msg_type('TextMsg')
 def group_cmd(ctx: GroupMsg):
     Command(ctx).main()
@@ -1081,7 +1081,7 @@ def group_cmd(ctx: GroupMsg):
 
 @bot.on_group_msg
 @deco.not_botself
-@deco.in_content('\_.*')
+@deco.in_content('^\_.*')
 @deco.only_this_msg_type('AtMsg')
 def group_cmd(ctx: GroupMsg):
     Command(ctx).main()
