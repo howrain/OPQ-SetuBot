@@ -1099,6 +1099,7 @@ def group_cmd(ctx: GroupMsg):
 @deco.in_content(r'(.*)--(.*)')
 @deco.only_this_msg_type('TextMsg')
 def tag_group(ctx: GroupMsg):
+    return
     info = re.search(r'(.*)--(.*)', ctx.Content)  # 提取关键字
     msg = TagMapping(ctx.FromGroupId, 0, ctx.FromUserId, info[1], info[2]).group('random')
     sendMsg.send_text(ctx, msg)
@@ -1108,6 +1109,7 @@ def tag_group(ctx: GroupMsg):
 @deco.in_content('(.*)==(.*)')
 @deco.only_this_msg_type('TextMsg')
 def tag_group(ctx: GroupMsg):
+    return
     info = re.search('(.*)==(.*)', ctx.Content)  # 提取关键字
     msg = TagMapping(ctx.FromGroupId, 0, ctx.FromUserId, info[1], info[2]).group('all')
     sendMsg.send_text(ctx, msg)
