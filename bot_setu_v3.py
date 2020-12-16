@@ -1081,7 +1081,7 @@ def friend_setu(ctx: FriendMsg):
 
 @bot.on_group_msg
 @deco.not_botself
-@deco.in_content('^\_.*')
+@deco.in_content('\_.*')
 @deco.only_this_msg_type('TextMsg')
 def group_cmd(ctx: GroupMsg):
     Command(ctx).main()
@@ -1089,7 +1089,7 @@ def group_cmd(ctx: GroupMsg):
 
 @bot.on_group_msg
 @deco.not_botself
-@deco.in_content('^\_.*')
+@deco.in_content('\_.*')
 @deco.only_this_msg_type('AtMsg')
 def group_cmd(ctx: GroupMsg):
     Command(ctx).main()
@@ -1099,23 +1099,21 @@ def group_cmd(ctx: GroupMsg):
 # @deco.in_content(r'(.*)--(.*)')
 # @deco.only_this_msg_type('TextMsg')
 # def tag_group(ctx: GroupMsg):
-#     return
 #     info = re.search(r'(.*)--(.*)', ctx.Content)  # 提取关键字
 #     msg = TagMapping(ctx.FromGroupId, 0, ctx.FromUserId, info[1], info[2]).group('random')
 #     sendMsg.send_text(ctx, msg)
-#
-#
+
+
 # @bot.on_group_msg
 # @deco.in_content('(.*)==(.*)')
 # @deco.only_this_msg_type('TextMsg')
 # def tag_group(ctx: GroupMsg):
-#     return
 #     info = re.search('(.*)==(.*)', ctx.Content)  # 提取关键字
 #     msg = TagMapping(ctx.FromGroupId, 0, ctx.FromUserId, info[1], info[2]).group('all')
 #     sendMsg.send_text(ctx, msg)
 
 
-# -----------------------------------------------------------------------
+# # -----------------------------------------------------------------------
 
 # @bot.on_friend_msg
 # @deco.in_content('[Gg][:：](\d+)[，,](.*)--(.*)')
@@ -1124,8 +1122,8 @@ def group_cmd(ctx: GroupMsg):
 #     info = re.search('[Gg][:：](\d+)[，,](.*)--(.*)', ctx.Content)  # 提取关键字
 #     msg = TagMapping(info[1], 0, ctx.FromUin, info[2], info[3]).group('random')
 #     sendMsg.send_text(ctx, msg)
-#
-#
+
+
 # @bot.on_friend_msg
 # @deco.in_content('[Gg][:：](\d+)[，,](.*)==(.*)')
 # @deco.only_this_msg_type('TextMsg')
@@ -1133,8 +1131,8 @@ def group_cmd(ctx: GroupMsg):
 #     info = re.search('[Gg][:：](\d+)[，,](.*)==(.*)', ctx.Content)  # 提取关键字
 #     msg = TagMapping(info[1], 0, ctx.FromUin, info[2], info[3]).group('all')
 #     sendMsg.send_text(ctx, msg)
-#
-#
+
+
 # @bot.on_friend_msg
 # @deco.in_content('[Gg][:：](\d+) [Qq][:：](\d+)[，,](.*)--(.*)')
 # @deco.only_this_msg_type('TextMsg')
@@ -1142,8 +1140,8 @@ def group_cmd(ctx: GroupMsg):
 #     info = re.search('[Gg][:：](\d+) [Qq][:：](\d+)[，,](.*)--(.*)', ctx.Content)  # 提取关键字
 #     msg = TagMapping(info[1], info[2], ctx.FromUin, info[3], info[4]).group_someone('random')
 #     sendMsg.send_text(ctx, msg)
-#
-#
+
+
 # @bot.on_friend_msg
 # @deco.in_content('[Gg][:：](\d+) [Qq][:：](\d+)[，,](.*)==(.*)')
 # @deco.only_this_msg_type('TextMsg')
